@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NVOD 일간 TOP5 대시보드</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+  :root {
+    --surface-0: #f1efea; --surface-1: #f8f7f5; --surface-2: #ffffff;
+    --text-primary: #0b0b0b; --text-secondary: #52514e; --text-muted: #898781;
+    --border: rgba(11,11,11,0.10); --border-strong: rgba(11,11,11,0.18);
+    --radius: 8px; --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --fill-accent: #2a78d6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --surface-0: #111110; --surface-1: #1a1a19; --surface-2: #242423;
+      --text-primary: #ffffff; --text-secondary: #c3c2b7; --text-muted: #898781;
+      --border: rgba(255,255,255,0.10); --border-strong: rgba(255,255,255,0.18);
+    }
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--surface-0); color: var(--text-primary); font-family: var(--font-sans); font-size: 14px; line-height: 1.5; }
+  .page { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+  .page-header { margin-bottom: 1.75rem; }
+  .page-header h1 { font-size: 20px; font-weight: 500; color: var(--text-primary); }
+  .page-header p { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+  .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 1.5rem; }
+  .kpi { background: var(--surface-1); border-radius: var(--radius); padding: .875rem 1rem; border: .5px solid var(--border); }
+  .kpi-label { font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; }
+  .kpi-val { font-size: 22px; font-weight: 500; color: var(--text-primary); line-height: 1; }
+  .kpi-sub { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+  .sec-title { font-size: 14px; font-weight: 700; color: var(--text-primary); letter-spacing: .01em; margin-bottom: 10px; }
+  .date-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1.25rem; }
+  .tab { padding: 4px 14px; border-radius: var(--radius); border: .5px solid var(--border-strong); background: transparent; cursor: pointer; font-size: 12px; color: var(--text-secondary); transition: all .12s; font-family: var(--font-sans); }
+  .tab:hover { background: var(--surface-1); }
+  .tab.active { background: var(--fill-accent); color: #fff; border-color: var(--fill-accent); }
+  .rank-tbl { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 1.5rem; }
+  .rank-tbl th { text-align: left; padding: 6px 8px; font-size: 10px; font-weight: 500; color: var(--text-muted); border-bottom: .5px solid var(--border); }
+  .rank-tbl td { padding: 8px 8px; border-bottom: .5px solid var(--border); color: var(--text-primary); vertical-align: middle; }
+  .rank-tbl tr:last-child td { border-bottom: none; }
+  .rbadge { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; font-size: 10px; font-weight: 500; }
+  .r1 { background: #eda100; color: #fff; }
+  .r2 { background: #a0a0a0; color: #fff; }
+  .r3 { background: #c8874a; color: #fff; }
+  .r45 { background: var(--surface-0); color: var(--text-muted); border: .5px solid var(--border-strong); }
+  .ep-sub { font-size: 11px; color: var(--text-secondary); }
+  .bar-row { display: flex; align-items: center; gap: 7px; }
+  .bar-bg { flex: 1; background: var(--surface-0); border-radius: 3px; height: 5px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 3px; transition: width .35s ease; }
+  .bval { font-size: 11px; color: var(--text-secondary); min-width: 30px; text-align: right; }
+  .charts-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 1.5rem; }
+  .card { background: var(--surface-1); border-radius: var(--radius); padding: 1rem; border: .5px solid var(--border); }
+  .card-title { font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 10px; }
+  .chip { font-size: 10px; color: var(--text-muted); background: var(--surface-0); padding: 2px 6px; border-radius: 4px; white-space: nowrap; }
+  .heatmap-wrap { background: var(--surface-1); border-radius: var(--radius); padding: 1rem; border: .5px solid var(--border); }
+  .hm-hour-label { font-size: 9px; color: var(--text-muted); text-align: center; padding-top: 2px; }
+  .hm-cell { border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 500; cursor: default; transition: opacity .15s; border: .5px solid var(--border); }
+  .hm-cell:hover { opacity: .75; }
+  .legend-strip { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 10px; color: var(--text-muted); }
+  .lstrip { display: flex; gap: 2px; }
+  .lsq { width: 14px; height: 10px; border-radius: 2px; border: .5px solid var(--border); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="page-header">
+    <h1>NVOD 일간 TOP5 대시보드</h1>
+    <p>날짜 탭을 선택하면 랭킹, 차트, 시간대 히트맵이 자동으로 업데이트됩니다.</p>
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-label">날짜</div><div class="kpi-val" id="k-date">—</div><div class="kpi-sub">선택 날짜</div></div>
+    <div class="kpi"><div class="kpi-label">총 View Count</div><div class="kpi-val" id="k-vc">—</div><div class="kpi-sub">TOP5 합계</div></div>
+    <div class="kpi"><div class="kpi-label">총 View Minutes</div><div class="kpi-val" id="k-vm">—</div><div class="kpi-sub">TOP5 합계</div></div>
+    <div class="kpi"><div class="kpi-label">1위 에피소드</div><div class="kpi-val" style="font-size:13px;line-height:1.3" id="k-top">—</div><div class="kpi-sub" id="k-top-vc">—</div></div>
+  </div>
+
+  <div class="sec-title">날짜 선택</div>
+  <div class="date-tabs" id="tabs"></div>
+
+  <div class="sec-title">TOP5 랭킹</div>
+  <table class="rank-tbl">
+    <thead><tr>
+      <th style="width:30px"></th>
+      <th>시리즈 / 에피소드</th>
+      <th style="width:85px">방영 시간대</th>
+      <th style="width:175px">View Count</th>
+      <th style="width:175px">View Minutes</th>
+    </tr></thead>
+    <tbody id="rank-body"></tbody>
+  </table>
+
+  <div class="heatmap-wrap">
+    <div class="sec-title" style="margin-bottom:4px">TOP5 시간대 분포 히트맵</div>
+    <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px">각 셀 = 해당 시간대에 방영 중인 에피소드 / 색 강도 = 누적 View Count / 셀 위에 커서를 올리면 에피소드 상세 확인</div>
+    <div id="heatmap"></div>
+    <div class="legend-strip">
+      <span>낮음</span>
+      <div class="lstrip" id="hm-legend"></div>
+      <span>높음</span>
+      <div style="flex:1"></div>
+      <span>방영 시간: KST 기준</span>
+    </div>
+  </div>
+
+  <div class="charts-2col" style="margin-top:1.75rem">
+    <div class="card">
+      <div class="card-title">View Count — TOP5</div>
+      <div style="position:relative;height:180px"><canvas id="c-vc" role="img" aria-label="TOP5 View Count 비교 바 차트"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">View Minutes — TOP5</div>
+      <div style="position:relative;height:180px"><canvas id="c-vm" role="img" aria-label="TOP5 View Minutes 비교 바 차트"></canvas></div>
+    </div>
+  </div>
+
+
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+
+/* ================================================================
+   DATA — 이 구역만 편집하세요
+   ================================================================
+   형식:
+   "MM/DD": [
+     { rank: 순위(1~5), series: "시리즈명", ep: "에피소드명",
+       vc: View Count(정수), vm: View Minutes(소수점 둘째 자리),
+       start: "HH:MM", end: "HH:MM" },
+     ...
+   ],
+
+   예시 데이터 (08/04) 아래에 새 날짜를 동일한 형식으로 추가하세요.
+   ================================================================ */
+const DATA = {
+
+  "08/04": [
+    { rank:1, series:"The Manager", ep:"Episode 266", vc:29, vm:143.57, start:"10:27", end:"11:57" },
+    { rank:2, series:"The Manager", ep:"Episode 253", vc:21, vm:309.98, start:"07:24", end:"08:55" },
+    { rank:3, series:"The Manager", ep:"Episode 265", vc:21, vm:165.43, start:"08:55", end:"10:27" },
+    { rank:4, series:"The Manager", ep:"Episode 286", vc:15, vm:179.18, start:"11:57", end:"13:32" },
+    { rank:5, series:"The Manager", ep:"Episode 287", vc:14, vm:162.67, start:"13:32", end:"15:12" },
+  ],
+
+  /* 새 날짜는 아래에 추가 ↓ */
+
+  "08/03": [
+    { rank:1, series:"Home Alone", ep:"Episode 349", vc:19, vm:143.95, start:"15:08", end:"16:34" },
+    { rank:2, series:"Match to Marry: With Parents", ep:"Episode 1", vc:18, vm:46.90, start:"00:00", end:"01:09" },
+    { rank:3, series:"Match to Marry: With Parents", ep:"Episode 2", vc:21, vm:120.27, start:"01:09", end:"02:19" },
+    { rank:4, series:"Home Alone", ep:"Episode 385", vc:19, vm:250.95, start:"16:34", end:"17:56" },
+    { rank:5, series:"Match to Marry: With Parents", ep:"Episode 6", vc:13, vm:117.82, start:"05:45", end:"06:51" },
+  ],
+
+  "08/02": [
+    { rank:1, series:"Home Alone", ep:"Episode 282", vc:18, vm:168.02, start:"08:02", end:"09:30" },
+    { rank:2, series:"Music Bank K-Chart", ep:"Episode 1215", vc:13, vm:62.33, start:"07:24", end:"08:55" },
+    { rank:3, series:"The Manager", ep:"Episode 265", vc:21, vm:165.43, start:"08:55", end:"10:27" },
+    { rank:4, series:"Home Alone", ep:"Episode 269", vc:13, vm:130.55, start:"11:57", end:"13:32" },
+    { rank:5, series:"Home Alone", ep:"Episode 287", vc:14, vm:162.67, start:"13:32", end:"15:12" },
+  ],
+
+  "08/01": [
+    { rank:1, series:"Running Man", ep:"Episode 388", vc:36, vm:479.15, start:"08:46", end:"10:16" },
+    { rank:2, series:"Running Man", ep:"Episode 389", vc:29, vm:456.72, start:"10:16", end:"11:40" },
+    { rank:3, series:"Running Man", ep:"Episode 390", vc:26, vm:326.73, start:"11:40", end:"13:12" },
+    { rank:4, series:"HRunning Man", ep:"Episode 387", vc:24, vm:392.45, start:"07:15", end:"08:46" },
+    { rank:5, series:"Running Man", ep:"Episode 385", vc:21, vm:278.93, start:"04:08", end:"05:44" },
+  ],
+
+  "07/31": [
+    { rank:1, series:"Running Man", ep:"Episode 388", vc:36, vm:479.15, start:"08:46", end:"10:16" },
+    { rank:2, series:"Running Man", ep:"Episode 389", vc:29, vm:456.72, start:"10:16", end:"11:40" },
+    { rank:3, series:"Running Man", ep:"Episode 390", vc:26, vm:326.73, start:"11:40", end:"13:12" },
+    { rank:4, series:"HRunning Man", ep:"Episode 387", vc:24, vm:392.45, start:"07:15", end:"08:46" },
+    { rank:5, series:"Running Man", ep:"Episode 385", vc:21, vm:278.93, start:"04:08", end:"05:44" },
+  ],
+
+};
+/* ================================================================
+   DATA 구역 끝 — 이 아래는 수정하지 마세요
+   ================================================================ */
+
+const HM_PALETTE = ["#eef4fc","#cce0f7","#99c1ef","#5c9de3","#2a78d6","#1a5faf","#0d3e80"];
+function getColor(s){ const m={"The Manager":"#2a78d6"}; return m[s]||"#888780"; }
+function fmt(n){ return typeof n==="number"?n.toLocaleString():n; }
+function timeToMin(t){ const[h,m]=t.split(":").map(Number); return h*60+m; }
+
+let cVC=null, cVM=null;
+
+function renderKPI(date, rows){
+  document.getElementById("k-date").textContent = date;
+  document.getElementById("k-vc").textContent = fmt(rows.reduce((s,r)=>s+r.vc,0));
+  document.getElementById("k-vm").textContent = rows.reduce((s,r)=>s+r.vm,0).toFixed(1);
+  document.getElementById("k-top").textContent = rows[0].ep;
+  document.getElementById("k-top-vc").textContent = "View Count "+fmt(rows[0].vc);
+}
+
+function renderTable(rows){
+  const maxVC=Math.max(...rows.map(r=>r.vc));
+  const maxVM=Math.max(...rows.map(r=>r.vm));
+  document.getElementById("rank-body").innerHTML = rows.map(r=>{
+    const col=getColor(r.series);
+    const bc=r.rank<=3?`r${r.rank}`:"r45";
+    return `<tr>
+      <td><span class="rbadge ${bc}">${r.rank}</span></td>
+      <td><div style="font-weight:500">${r.series}</div><div class="ep-sub">${r.ep}</div></td>
+      <td><span class="chip">${r.start}–${r.end}</span></td>
+      <td><div class="bar-row"><div class="bar-bg"><div class="bar-fill" style="width:${Math.round(r.vc/maxVC*100)}%;background:${col}"></div></div><span class="bval">${fmt(r.vc)}</span></div></td>
+      <td><div class="bar-row"><div class="bar-bg"><div class="bar-fill" style="width:${Math.round(r.vm/maxVM*100)}%;background:${col}88"></div></div><span class="bval">${r.vm.toFixed(1)}</span></div></td>
+    </tr>`;
+  }).join("");
+}
+
+function renderCharts(rows){
+  const labels=rows.map(r=>`#${r.rank} ${r.ep.replace("Episode ","Ep.")}`);
+  const colors=rows.map(r=>getColor(r.series));
+  const opts=(unit)=>({
+    responsive:true, maintainAspectRatio:false, indexAxis:"y",
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${fmt(ctx.parsed.x)} ${unit}`}}},
+    scales:{
+      x:{grid:{color:"#e1e0d9"},ticks:{color:"#898781",font:{size:10}}},
+      y:{grid:{display:false},ticks:{color:"#52514e",font:{size:10}}}
+    }
+  });
+  if(cVC) cVC.destroy();
+  cVC=new Chart(document.getElementById("c-vc"),{type:"bar",
+    data:{labels,datasets:[{data:rows.map(r=>r.vc),backgroundColor:colors,borderRadius:3,barThickness:16}]},
+    options:opts("views")});
+  if(cVM) cVM.destroy();
+  cVM=new Chart(document.getElementById("c-vm"),{type:"bar",
+    data:{labels,datasets:[{data:rows.map(r=>parseFloat(r.vm.toFixed(1))),backgroundColor:colors.map(c=>c+"99"),borderRadius:3,barThickness:16}]},
+    options:opts("min")});
+}
+
+function renderHeatmap(rows){
+  const HOURS=Array.from({length:24},(_,i)=>i);
+  const hourData={};
+  HOURS.forEach(h=>{hourData[h]={vc:0,eps:[]};});
+  rows.forEach(r=>{
+    const sm=timeToMin(r.start), em=timeToMin(r.end);
+    HOURS.forEach(h=>{
+      if(em>h*60 && sm<(h+1)*60){ hourData[h].vc+=r.vc; hourData[h].eps.push(r); }
+    });
+  });
+  const maxVC=Math.max(...HOURS.map(h=>hourData[h].vc),1);
+  const wrap=document.getElementById("heatmap");
+  wrap.innerHTML="";
+
+  const lblRow=document.createElement("div");
+  lblRow.style.cssText="display:grid;grid-template-columns:repeat(24,1fr);gap:3px;margin-bottom:3px";
+  HOURS.forEach(h=>{
+    const l=document.createElement("div");
+    l.className="hm-hour-label";
+    l.textContent=h%3===0?String(h).padStart(2,"0"):"";
+    lblRow.appendChild(l);
+  });
+  wrap.appendChild(lblRow);
+
+  const hmRow=document.createElement("div");
+  hmRow.style.cssText="display:grid;grid-template-columns:repeat(24,1fr);gap:3px";
+  HOURS.forEach(h=>{
+    const d=hourData[h];
+    const idx=d.vc>0?Math.min(Math.floor(d.vc/maxVC*HM_PALETTE.length),HM_PALETTE.length-1):null;
+    const bg=idx!==null?HM_PALETTE[idx]:"var(--surface-0)";
+    const tc=idx!==null&&idx>=3?"#fff":"var(--text-muted)";
+    const cell=document.createElement("div");
+    cell.className="hm-cell";
+    cell.style.cssText=`background:${bg};height:28px;color:${tc}`;
+    cell.textContent=d.vc>0?d.vc:"";
+    if(d.eps.length) cell.title=`${String(h).padStart(2,"0")}:00–${String(h+1).padStart(2,"0")}:00\n`+d.eps.map(e=>`#${e.rank} ${e.ep} (${e.vc}v)`).join("\n");
+    hmRow.appendChild(cell);
+  });
+  wrap.appendChild(hmRow);
+
+  const rkRow=document.createElement("div");
+  rkRow.style.cssText="display:grid;grid-template-columns:repeat(24,1fr);gap:3px;margin-top:3px";
+  HOURS.forEach(h=>{
+    const l=document.createElement("div");
+    l.style.cssText="font-size:9px;color:var(--text-muted);text-align:center;min-height:12px";
+    if(hourData[h].eps.length) l.textContent=hourData[h].eps.map(e=>`#${e.rank}`).join(" ");
+    rkRow.appendChild(l);
+  });
+  wrap.appendChild(rkRow);
+
+  document.getElementById("hm-legend").innerHTML=HM_PALETTE.map(c=>`<div class="lsq" style="background:${c}"></div>`).join("");
+}
+
+function select(date){
+  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active",t.dataset.d===date));
+  const rows=DATA[date];
+  renderKPI(date,rows); renderTable(rows); renderCharts(rows); renderHeatmap(rows);
+}
+
+const tabWrap=document.getElementById("tabs");
+Object.keys(DATA).forEach(d=>{
+  const btn=document.createElement("button");
+  btn.className="tab"; btn.textContent=d; btn.dataset.d=d;
+  btn.onclick=()=>select(d);
+  tabWrap.appendChild(btn);
+});
+select(Object.keys(DATA)[0]);
+
+</script>
+</body>
+</html>
