@@ -147,8 +147,6 @@ const DATA = {
     { rank:5, series:"The Manager", ep:"Episode 287", vc:14, vm:162.67, start:"13:32", end:"15:12" },
   ],
 
-  /* 새 날짜는 아래에 추가 ↓ */
-
   "08/03": [
     { rank:1, series:"Home Alone", ep:"Episode 349", vc:19, vm:143.95, start:"15:08", end:"16:34" },
     { rank:2, series:"Match to Marry: With Parents", ep:"Episode 1", vc:18, vm:46.90, start:"00:00", end:"01:09" },
@@ -169,7 +167,7 @@ const DATA = {
     { rank:1, series:"Running Man", ep:"Episode 388", vc:36, vm:479.15, start:"08:46", end:"10:16" },
     { rank:2, series:"Running Man", ep:"Episode 389", vc:29, vm:456.72, start:"10:16", end:"11:40" },
     { rank:3, series:"Running Man", ep:"Episode 390", vc:26, vm:326.73, start:"11:40", end:"13:12" },
-    { rank:4, series:"HRunning Man", ep:"Episode 387", vc:24, vm:392.45, start:"07:15", end:"08:46" },
+    { rank:4, series:"Running Man", ep:"Episode 387", vc:24, vm:392.45, start:"07:15", end:"08:46" },
     { rank:5, series:"Running Man", ep:"Episode 385", vc:21, vm:278.93, start:"04:08", end:"05:44" },
   ],
 
@@ -177,9 +175,11 @@ const DATA = {
     { rank:1, series:"Running Man", ep:"Episode 388", vc:36, vm:479.15, start:"08:46", end:"10:16" },
     { rank:2, series:"Running Man", ep:"Episode 389", vc:29, vm:456.72, start:"10:16", end:"11:40" },
     { rank:3, series:"Running Man", ep:"Episode 390", vc:26, vm:326.73, start:"11:40", end:"13:12" },
-    { rank:4, series:"HRunning Man", ep:"Episode 387", vc:24, vm:392.45, start:"07:15", end:"08:46" },
+    { rank:4, series:"Running Man", ep:"Episode 387", vc:24, vm:392.45, start:"07:15", end:"08:46" },
     { rank:5, series:"Running Man", ep:"Episode 385", vc:21, vm:278.93, start:"04:08", end:"05:44" },
   ],
+
+  /* 새 날짜는 아래에 추가 ↓ */
 
 };
 /* ================================================================
@@ -187,7 +187,24 @@ const DATA = {
    ================================================================ */
 
 const HM_PALETTE = ["#eef4fc","#cce0f7","#99c1ef","#5c9de3","#2a78d6","#1a5faf","#0d3e80"];
-function getColor(s){ const m={"The Manager":"#2a78d6"}; return m[s]||"#888780"; }
+
+/* 시리즈별 고정 색상 — 새 시리즈 추가 시 COLOR_POOL에서 자동 배정 */
+const SERIES_COLOR_MAP = {
+  "The Manager":                  "#2a78d6",
+  "Home Alone":                   "#059669",
+  "Match to Marry: With Parents": "#d97706",
+  "Music Bank K-Chart":           "#7c3aed",
+  "Running Man":                  "#db2777",
+};
+const COLOR_POOL = ["#2a78d6","#059669","#d97706","#7c3aed","#db2777","#0891b2","#dc2626","#65a30d","#ea580c","#6d28d9"];
+let _colorIdx = Object.keys(SERIES_COLOR_MAP).length;
+function getColor(s){
+  if(!SERIES_COLOR_MAP[s]){
+    SERIES_COLOR_MAP[s] = COLOR_POOL[_colorIdx % COLOR_POOL.length];
+    _colorIdx++;
+  }
+  return SERIES_COLOR_MAP[s];
+}
 function fmt(n){ return typeof n==="number"?n.toLocaleString():n; }
 function timeToMin(t){ const[h,m]=t.split(":").map(Number); return h*60+m; }
 
