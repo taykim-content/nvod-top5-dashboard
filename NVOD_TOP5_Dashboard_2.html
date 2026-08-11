@@ -61,6 +61,17 @@
   .legend-strip { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 10px; color: var(--text-muted); }
   .lstrip { display: flex; gap: 2px; }
   .lsq { width: 14px; height: 10px; border-radius: 2px; border: .5px solid var(--border); }
+
+  /* 주차 드롭다운 */
+  .week-select-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+  .week-select-row label { font-size: 12px; color: var(--text-secondary); white-space: nowrap; }
+  .week-dropdown { padding: 5px 10px; border-radius: var(--radius); border: .5px solid var(--border-strong); background: var(--surface-1); color: var(--text-primary); font-size: 12px; font-family: var(--font-sans); cursor: pointer; min-width: 160px; }
+  .week-dropdown:focus { outline: none; border-color: var(--fill-accent); }
+
+  /* 시리즈 컬러 레전드 */
+  .series-legend { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 1.25rem; padding: .625rem .875rem; background: var(--surface-1); border-radius: var(--radius); border: .5px solid var(--border); }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-secondary); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 </style>
 </head>
 <body>
@@ -79,7 +90,15 @@
   </div>
 
   <div class="sec-title">날짜 선택</div>
+  <div class="week-select-row">
+    <label>주차 선택</label>
+    <select class="week-dropdown" id="week-select" onchange="onWeekChange()">
+    </select>
+  </div>
   <div class="date-tabs" id="tabs"></div>
+
+  <!-- 시리즈 컬러 레전드 -->
+  <div class="series-legend" id="series-legend"></div>
 
   <div class="sec-title">TOP5 랭킹</div>
   <table class="rank-tbl">
@@ -308,20 +327,106 @@ function renderHeatmap(rows){
   document.getElementById("hm-legend").innerHTML=HM_PALETTE.map(c=>`<div class="lsq" style="background:${c}"></div>`).join("");
 }
 
+/* ── 주차 그룹핑 헬퍼 ─────────────────────────────────────────
+   날짜(MM/DD)를 기준으로 월요일 시작 주차로 그룹핑
+   ──────────────────────────────────────────────────────────── */
+function parseMD(d){
+  const[m,dd]=d.split("/").map(Number);
+  // 연도는 현재 기준으로 추정 (연도 정보 없으므로 2026 고정)
+  return new Date(2026, m-1, dd);
+}
+function weekKey(d){
+  const dt = parseMD(d);
+  const day = dt.getDay(); // 0=Sun
+  const diff = (day===0)?-6:1-day; // 월요일로
+  const mon = new Date(dt); mon.setDate(dt.getDate()+diff);
+  const sun = new Date(mon); sun.setDate(mon.getDate()+6);
+  const fmt = d => `${String(d.getMonth()+1).padStart(2,"0")}/${String(d.getDate()).padStart(2,"0")}`;
+  return `${fmt(mon)} – ${fmt(sun)}`;
+}
+
+// 주차별 날짜 그룹 { "08/04 – 08/10": ["08/04","08/03",...], ... }
+function buildWeekGroups(){
+  const groups = {};
+  Object.keys(DATA).forEach(d=>{
+    const k = weekKey(d);
+    if(!groups[k]) groups[k]=[];
+    groups[k].push(d);
+  });
+  // 주차 내 날짜 정렬 (최신순)
+  Object.keys(groups).forEach(k=>{
+    groups[k].sort((a,b)=>parseMD(b)-parseMD(a));
+  });
+  return groups;
+}
+
+/* ── 시리즈 레전드 렌더 ──────────────────────────────────────── */
+function renderLegend(dates){
+  const seen = new Set();
+  dates.forEach(d=>{
+    (DATA[d]||[]).forEach(r=>seen.add(r.series));
+  });
+  const wrap = document.getElementById("series-legend");
+  wrap.innerHTML = [...seen].map(s=>`
+    <div class="legend-item">
+      <div class="legend-dot" style="background:${getColor(s)}"></div>
+      <span>${s}</span>
+    </div>`).join("");
+  if(seen.size===0) wrap.style.display="none";
+  else wrap.style.display="flex";
+}
+
+/* ── 주차 드롭다운 변경 ──────────────────────────────────────── */
+function onWeekChange(){
+  const sel = document.getElementById("week-select").value;
+  const groups = buildWeekGroups();
+  const dates = groups[sel] || [];
+  renderLegend(dates);
+  buildDayTabs(dates);
+  if(dates.length) select(dates[0]);
+}
+
+/* ── 날짜 탭 빌드 ────────────────────────────────────────────── */
+function buildDayTabs(dates){
+  const wrap = document.getElementById("tabs");
+  wrap.innerHTML = "";
+  dates.forEach(d=>{
+    const btn = document.createElement("button");
+    btn.className="tab"; btn.textContent=d; btn.dataset.d=d;
+    btn.onclick=()=>select(d);
+    wrap.appendChild(btn);
+  });
+}
+
 function select(date){
   document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active",t.dataset.d===date));
   const rows=DATA[date];
   renderKPI(date,rows); renderTable(rows); renderCharts(rows); renderHeatmap(rows);
 }
 
-const tabWrap=document.getElementById("tabs");
-Object.keys(DATA).forEach(d=>{
-  const btn=document.createElement("button");
-  btn.className="tab"; btn.textContent=d; btn.dataset.d=d;
-  btn.onclick=()=>select(d);
-  tabWrap.appendChild(btn);
-});
-select(Object.keys(DATA)[0]);
+/* ── 초기화 ──────────────────────────────────────────────────── */
+(function init(){
+  const groups = buildWeekGroups();
+  const weekKeys = Object.keys(groups).sort((a,b)=>{
+    // 최신 주차가 먼저
+    return parseMD(b.split(" – ")[0]) - parseMD(a.split(" – ")[0]);
+  });
+
+  const sel = document.getElementById("week-select");
+  weekKeys.forEach((k,i)=>{
+    const opt = document.createElement("option");
+    opt.value = k; opt.textContent = k;
+    sel.appendChild(opt);
+  });
+
+  if(weekKeys.length){
+    const firstWeek = weekKeys[0];
+    const dates = groups[firstWeek];
+    renderLegend(dates);
+    buildDayTabs(dates);
+    if(dates.length) select(dates[0]);
+  }
+})();
 
 </script>
 </body>
