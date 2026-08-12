@@ -61,6 +61,7 @@
   .legend-strip { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 10px; color: var(--text-muted); }
   .lstrip { display: flex; gap: 2px; }
   .lsq { width: 14px; height: 10px; border-radius: 2px; border: .5px solid var(--border); }
+  .tz-badge { font-size: 10px; color: var(--text-muted); background: var(--surface-0); border: .5px solid var(--border-strong); border-radius: 4px; padding: 1px 6px; margin-left: 6px; vertical-align: middle; }
 
   /* 주차 드롭다운 */
   .week-select-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
@@ -72,6 +73,23 @@
   .series-legend { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 1.25rem; padding: .625rem .875rem; background: var(--surface-1); border-radius: var(--radius); border: .5px solid var(--border); }
   .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-secondary); }
   .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+  /* Prime Time 국가표 */
+  .pt-section { margin-top: 1.75rem; }
+  .pt-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .pt-table th { text-align: left; padding: 7px 10px; font-size: 10px; font-weight: 500; color: var(--text-muted); border-bottom: .5px solid var(--border); background: var(--surface-1); white-space: nowrap; }
+  .pt-table td { padding: 7px 10px; border-bottom: .5px solid var(--border); color: var(--text-primary); vertical-align: top; line-height: 1.45; }
+  .pt-table tr:last-child td { border-bottom: none; }
+  .pt-table tr:hover td { background: var(--surface-1); }
+  .pt-highlight { background: rgba(253,224,71,0.18); }
+  .pt-highlight td { font-weight: 500; }
+  .pt-kst { font-size: 11px; color: var(--fill-accent); font-weight: 500; white-space: nowrap; }
+  .pt-local { font-size: 11px; color: var(--text-secondary); white-space: nowrap; }
+  .pt-note { font-size: 11px; color: var(--text-muted); }
+  .pt-tag { display: inline-block; font-size: 9px; font-weight: 500; padding: 1px 5px; border-radius: 3px; margin-right: 4px; vertical-align: middle; }
+  .pt-tag-main { background: rgba(253,224,71,0.35); color: #92400e; }
+  .pt-tag-ref  { background: var(--surface-0); color: var(--text-muted); border: .5px solid var(--border-strong); }
+  .pt-divider { height: .5px; background: var(--border); margin: 2px 0; }
 </style>
 </head>
 <body>
@@ -79,7 +97,7 @@
 
   <div class="page-header">
     <h1>NVOD 일간 TOP5 대시보드</h1>
-    <p>날짜 탭을 선택하면 랭킹, 차트, 시간대 히트맵이 자동으로 업데이트됩니다.</p>
+    <p>날짜 탭을 선택하면 랭킹, 차트, 시간대 히트맵이 자동으로 업데이트됩니다. 방영 시간 기준: PDT (KST -17h)</p>
   </div>
 
   <div class="kpi-row">
@@ -105,25 +123,12 @@
     <thead><tr>
       <th style="width:30px"></th>
       <th>시리즈 / 에피소드</th>
-      <th style="width:85px">방영 시간대</th>
+      <th style="width:85px">방영 시간대 <span class="tz-badge">PDT</span></th>
       <th style="width:175px">View Count</th>
       <th style="width:175px">View Minutes</th>
     </tr></thead>
     <tbody id="rank-body"></tbody>
   </table>
-
-  <div class="heatmap-wrap">
-    <div class="sec-title" style="margin-bottom:4px">TOP5 시간대 분포 히트맵</div>
-    <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px">각 셀 = 해당 시간대에 방영 중인 에피소드 / 색 강도 = 누적 View Count / 셀 위에 커서를 올리면 에피소드 상세 확인</div>
-    <div id="heatmap"></div>
-    <div class="legend-strip">
-      <span>낮음</span>
-      <div class="lstrip" id="hm-legend"></div>
-      <span>높음</span>
-      <div style="flex:1"></div>
-      <span>방영 시간: KST 기준</span>
-    </div>
-  </div>
 
   <div class="charts-2col" style="margin-top:1.75rem">
     <div class="card">
@@ -136,6 +141,97 @@
     </div>
   </div>
 
+
+  <div class="heatmap-wrap">
+    <div class="sec-title" style="margin-bottom:4px">TOP5 시간대 분포 히트맵 <span class="tz-badge">PDT</span></div>
+    <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px">각 셀 = 해당 시간대에 방영 중인 에피소드 / 색 강도 = 누적 View Count / PDT 기준 / 셀 위에 커서를 올리면 에피소드 상세 확인</div>
+    <div id="heatmap"></div>
+    <div class="legend-strip">
+      <span>낮음</span>
+      <div class="lstrip" id="hm-legend"></div>
+      <span>높음</span>
+      <div style="flex:1"></div>
+      <span>방영 시간: PDT 기준</span>
+    </div>
+  </div>
+
+  <div class="pt-section">
+    <div class="sec-title">서비스 주요 국가 Prime Time <span style="font-size:11px;font-weight:400;color:var(--text-muted);margin-left:6px">KST 기준 · 노란색 = NVOD 편성 핵심 타깃</span></div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <table class="pt-table">
+        <thead>
+          <tr>
+            <th style="width:120px">국가 (권역)</th>
+            <th style="width:130px">현지 Prime Time</th>
+            <th style="width:160px">한국 시간 (KST)</th>
+            <th>비고 및 편성 특징</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="pt-highlight">
+            <td><span class="pt-tag pt-tag-main">핵심</span>미국 (동부)</td>
+            <td class="pt-local">20:00 – 23:00</td>
+            <td class="pt-kst">09:00 – 12:00 (익일)</td>
+            <td class="pt-note">서머타임 적용 중. 인구가 밀집된 동부 기준 편성이 핵심.</td>
+          </tr>
+          <tr class="pt-highlight">
+            <td><span class="pt-tag pt-tag-main">핵심</span>캐나다 (동부)</td>
+            <td class="pt-local">19:00 – 23:00</td>
+            <td class="pt-kst">08:00 – 12:00 (익일)</td>
+            <td class="pt-note">미국 시장과 동조화. 19시부터 가족형 콘텐츠가 강세.</td>
+          </tr>
+          <tr>
+            <td><span class="pt-tag pt-tag-ref">참고</span>영국</td>
+            <td class="pt-local">19:00 – 22:00</td>
+            <td class="pt-kst">04:00 – 07:00 (익일)</td>
+            <td class="pt-note">21:00 Watershed(규제 기준점) 이후 성인 타깃 편성.</td>
+          </tr>
+          <tr>
+            <td><span class="pt-tag pt-tag-ref">참고</span>프랑스</td>
+            <td class="pt-local">21:10 – 23:00</td>
+            <td class="pt-kst">05:10 – 07:00 (익일)</td>
+            <td class="pt-note">유럽 내 가장 늦은 메인 프로그램 시작 시각 보유.</td>
+          </tr>
+          <tr>
+            <td><span class="pt-tag pt-tag-ref">참고</span>독일</td>
+            <td class="pt-local">20:15 – 23:00</td>
+            <td class="pt-kst">04:15 – 07:00 (익일)</td>
+            <td class="pt-note">20:00 뉴스 종료 직후인 20:15가 편성의 '대목'.</td>
+          </tr>
+          <tr>
+            <td><span class="pt-tag pt-tag-ref">참고</span>이탈리아</td>
+            <td class="pt-local">21:15 – 23:30</td>
+            <td class="pt-kst">05:15 – 07:30 (익일)</td>
+            <td class="pt-note">저녁 식사 후 온 가족이 모이는 21시 이후가 피크.</td>
+          </tr>
+          <tr>
+            <td><span class="pt-tag pt-tag-ref">참고</span>포르투갈</td>
+            <td class="pt-local">21:00 – 00:00</td>
+            <td class="pt-kst">06:00 – 09:00 (익일)</td>
+            <td class="pt-note">라틴 생활 패턴으로 자정까지 시청자 유지율이 높음.</td>
+          </tr>
+          <tr>
+            <td><span class="pt-tag pt-tag-ref">참고</span>브라질</td>
+            <td class="pt-local">20:30 – 22:30</td>
+            <td class="pt-kst">08:30 – 10:30 (익일)</td>
+            <td class="pt-note">Novela(드라마) 방영 시간대가 광고 및 시청률의 정점.</td>
+          </tr>
+          <tr>
+            <td><span class="pt-tag pt-tag-ref">참고</span>호주 (시드니)</td>
+            <td class="pt-local">19:00 – 22:30</td>
+            <td class="pt-kst">17:00 – 20:30 (당일)</td>
+            <td class="pt-note">한국과 시차가 적어 실시간 편성 관리에 가장 유리.</td>
+          </tr>
+          <tr>
+            <td><span class="pt-tag pt-tag-ref">참고</span>뉴질랜드</td>
+            <td class="pt-local">19:00 – 22:00</td>
+            <td class="pt-kst">16:00 – 19:00 (당일)</td>
+            <td class="pt-note">일찍 시작하고 일찍 끝나는 패턴. 퇴근 직후가 피크.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 
 
 </div>
@@ -217,7 +313,7 @@ const DATA = {
   "08/02": [
     { rank:1, series:"Home Alone", ep:"Home Alone Episode 282", vc:18, vm:168.02, start:"08:02", end:"09:30" },
     { rank:2, series:"Music Bank K-Chart", ep:"Music Bank K-Chart Episode 1215", vc:13, vm:62.33, start:"07:24", end:"08:55" },
-    { rank:3, series:"The Manager", ep:"The Manage Episode 265", vc:21, vm:165.43, start:"08:55", end:"10:27" },
+    { rank:3, series:"The Manager", ep:"The Manager Episode 265", vc:21, vm:165.43, start:"08:55", end:"10:27" },
     { rank:4, series:"Home Alone", ep:"Home Alone Episode 269", vc:13, vm:130.55, start:"11:57", end:"13:32" },
     { rank:5, series:"Home Alone", ep:"Home Alone Episode 287", vc:14, vm:162.67, start:"13:32", end:"15:12" },
   ],
@@ -265,7 +361,23 @@ function getColor(s){
   return SERIES_COLOR_MAP[s];
 }
 function fmt(n){ return typeof n==="number"?n.toLocaleString():n; }
+
+/* KST → PDT 변환 (KST - 17h)
+   반환값: "HH:MM" 문자열 (익일 넘어가면 +1d 표시 없이 시간만) */
+function kstToPdt(t){
+  if(!t) return t;
+  const [h, m] = t.split(":").map(Number);
+  let pdtMin = h * 60 + m - 17 * 60;
+  // 음수면 전날이지만 24h 순환 처리
+  pdtMin = ((pdtMin % 1440) + 1440) % 1440;
+  const ph = Math.floor(pdtMin / 60);
+  const pm = pdtMin % 60;
+  return `${String(ph).padStart(2,"0")}:${String(pm).padStart(2,"0")}`;
+}
+
+/* PDT 기준 분(minute) 계산 */
 function timeToMin(t){ const[h,m]=t.split(":").map(Number); return h*60+m; }
+function timeToMinPdt(t){ return timeToMin(kstToPdt(t)); }
 
 let cVC=null, cVM=null;
 
@@ -286,7 +398,7 @@ function renderTable(rows){
     return `<tr>
       <td><span class="rbadge ${bc}">${r.rank}</span></td>
       <td><div style="font-weight:500">${r.series}</div><div class="ep-sub">${r.ep}</div></td>
-      <td><span class="chip">${r.start}–${r.end}</span></td>
+      <td><span class="chip" title="KST ${r.start}–${r.end}">${kstToPdt(r.start)}–${kstToPdt(r.end)} PDT</span></td>
       <td><div class="bar-row"><div class="bar-bg"><div class="bar-fill" style="width:${Math.round(r.vc/maxVC*100)}%;background:${col}"></div></div><span class="bval">${fmt(r.vc)}</span></div></td>
       <td><div class="bar-row"><div class="bar-bg"><div class="bar-fill" style="width:${Math.round(r.vm/maxVM*100)}%;background:${col}88"></div></div><span class="bval">${r.vm.toFixed(1)}</span></div></td>
     </tr>`;
@@ -319,9 +431,12 @@ function renderHeatmap(rows){
   const hourData={};
   HOURS.forEach(h=>{hourData[h]={vc:0,eps:[]};});
   rows.forEach(r=>{
-    const sm=timeToMin(r.start), em=timeToMin(r.end);
+    const sm=timeToMinPdt(r.start), em=timeToMinPdt(r.end);
+    // PDT로 변환 시 종료가 시작보다 작으면(자정 넘김) 24h 보정
+    const emAdj = em <= sm ? em + 1440 : em;
     HOURS.forEach(h=>{
-      if(em>h*60 && sm<(h+1)*60){ hourData[h].vc+=r.vc; hourData[h].eps.push(r); }
+      const hStart=h*60, hEnd=hStart+60;
+      if(emAdj>hStart && sm<hEnd){ hourData[h].vc+=r.vc; hourData[h].eps.push(r); }
     });
   });
   const maxVC=Math.max(...HOURS.map(h=>hourData[h].vc),1);
@@ -349,7 +464,7 @@ function renderHeatmap(rows){
     cell.className="hm-cell";
     cell.style.cssText=`background:${bg};height:28px;color:${tc}`;
     cell.textContent=d.vc>0?d.vc:"";
-    if(d.eps.length) cell.title=`${String(h).padStart(2,"0")}:00–${String(h+1).padStart(2,"0")}:00\n`+d.eps.map(e=>`#${e.rank} ${e.ep} (${e.vc}v)`).join("\n");
+    if(d.eps.length) cell.title=`${String(h).padStart(2,"0")}:00–${String(h+1).padStart(2,"0")}:00 PDT\n`+d.eps.map(e=>`#${e.rank} ${e.ep} (${e.vc}v)`).join("\n");
     hmRow.appendChild(cell);
   });
   wrap.appendChild(hmRow);
