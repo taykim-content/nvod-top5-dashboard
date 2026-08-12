@@ -61,6 +61,10 @@
   .legend-strip { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 10px; color: var(--text-muted); }
   .lstrip { display: flex; gap: 2px; }
   .lsq { width: 14px; height: 10px; border-radius: 2px; border: .5px solid var(--border); }
+  .hm-tz-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .hm-tz-row label { font-size: 11px; color: var(--text-secondary); white-space: nowrap; }
+  .hm-tz-select { padding: 3px 8px; border-radius: 6px; border: .5px solid var(--border-strong); background: var(--surface-0); color: var(--text-primary); font-size: 11px; font-family: var(--font-sans); cursor: pointer; }
+  .hm-tz-select:focus { outline: none; border-color: var(--fill-accent); }
 
   /* 주차 드롭다운 */
   .week-select-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
@@ -143,6 +147,17 @@
 
   <div class="heatmap-wrap">
     <div class="sec-title" style="margin-bottom:4px">TOP5 시간대 분포 히트맵</div>
+    <div class="hm-tz-row">
+      <label>시간대 기준</label>
+      <select class="hm-tz-select" id="tz-select" onchange="onTzChange()">
+        <option value="0">KST — 한국</option>
+        <option value="-17">PDT — 미국 서부 (KST –17h)</option>
+        <option value="-13">EDT — 미국 동부 (KST –13h)</option>
+        <option value="-9">UTC — 영국 (KST –9h)</option>
+        <option value="-12">BRT — 브라질 (KST –12h)</option>
+        <option value="2">AEST — 호주 시드니 (KST +2h)</option>
+      </select>
+    </div>
     <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px">각 셀 = 해당 시간대에 방영 중인 에피소드 / 색 강도 = 누적 View Count / 셀 위에 커서를 올리면 에피소드 상세 확인</div>
     <div id="heatmap"></div>
     <div class="legend-strip">
@@ -150,86 +165,90 @@
       <div class="lstrip" id="hm-legend"></div>
       <span>높음</span>
       <div style="flex:1"></div>
-      <span>방영 시간: KST 기준</span>
+      <span id="hm-tz-label">방영 시간: KST 기준</span>
     </div>
   </div>
 
   <div class="pt-section">
-    <div class="sec-title">서비스 주요 국가 Prime Time <span style="font-size:11px;font-weight:400;color:var(--text-muted);margin-left:6px">KST 기준 · 노란색 = NVOD 편성 핵심 타깃</span></div>
-    <div class="card" style="padding:0;overflow:hidden">
-      <table class="pt-table">
-        <thead>
-          <tr>
-            <th style="width:120px">국가 (권역)</th>
-            <th style="width:130px">현지 Prime Time</th>
-            <th style="width:160px">한국 시간 (KST)</th>
-            <th>비고 및 편성 특징</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr class="pt-highlight">
-            <td><span class="pt-tag pt-tag-main">핵심</span>미국 (동부)</td>
-            <td class="pt-local">20:00 – 23:00</td>
-            <td class="pt-kst">09:00 – 12:00 (익일)</td>
-            <td class="pt-note">서머타임 적용 중. 인구가 밀집된 동부 기준 편성이 핵심.</td>
-          </tr>
-          <tr class="pt-highlight">
-            <td><span class="pt-tag pt-tag-main">핵심</span>캐나다 (동부)</td>
-            <td class="pt-local">19:00 – 23:00</td>
-            <td class="pt-kst">08:00 – 12:00 (익일)</td>
-            <td class="pt-note">미국 시장과 동조화. 19시부터 가족형 콘텐츠가 강세.</td>
-          </tr>
-          <tr>
-            <td><span class="pt-tag pt-tag-ref">참고</span>영국</td>
-            <td class="pt-local">19:00 – 22:00</td>
-            <td class="pt-kst">04:00 – 07:00 (익일)</td>
-            <td class="pt-note">21:00 Watershed(규제 기준점) 이후 성인 타깃 편성.</td>
-          </tr>
-          <tr>
-            <td><span class="pt-tag pt-tag-ref">참고</span>프랑스</td>
-            <td class="pt-local">21:10 – 23:00</td>
-            <td class="pt-kst">05:10 – 07:00 (익일)</td>
-            <td class="pt-note">유럽 내 가장 늦은 메인 프로그램 시작 시각 보유.</td>
-          </tr>
-          <tr>
-            <td><span class="pt-tag pt-tag-ref">참고</span>독일</td>
-            <td class="pt-local">20:15 – 23:00</td>
-            <td class="pt-kst">04:15 – 07:00 (익일)</td>
-            <td class="pt-note">20:00 뉴스 종료 직후인 20:15가 편성의 '대목'.</td>
-          </tr>
-          <tr>
-            <td><span class="pt-tag pt-tag-ref">참고</span>이탈리아</td>
-            <td class="pt-local">21:15 – 23:30</td>
-            <td class="pt-kst">05:15 – 07:30 (익일)</td>
-            <td class="pt-note">저녁 식사 후 온 가족이 모이는 21시 이후가 피크.</td>
-          </tr>
-          <tr>
-            <td><span class="pt-tag pt-tag-ref">참고</span>포르투갈</td>
-            <td class="pt-local">21:00 – 00:00</td>
-            <td class="pt-kst">06:00 – 09:00 (익일)</td>
-            <td class="pt-note">라틴 생활 패턴으로 자정까지 시청자 유지율이 높음.</td>
-          </tr>
-          <tr>
-            <td><span class="pt-tag pt-tag-ref">참고</span>브라질</td>
-            <td class="pt-local">20:30 – 22:30</td>
-            <td class="pt-kst">08:30 – 10:30 (익일)</td>
-            <td class="pt-note">Novela(드라마) 방영 시간대가 광고 및 시청률의 정점.</td>
-          </tr>
-          <tr>
-            <td><span class="pt-tag pt-tag-ref">참고</span>호주 (시드니)</td>
-            <td class="pt-local">19:00 – 22:30</td>
-            <td class="pt-kst">17:00 – 20:30 (당일)</td>
-            <td class="pt-note">한국과 시차가 적어 실시간 편성 관리에 가장 유리.</td>
-          </tr>
-          <tr>
-            <td><span class="pt-tag pt-tag-ref">참고</span>뉴질랜드</td>
-            <td class="pt-local">19:00 – 22:00</td>
-            <td class="pt-kst">16:00 – 19:00 (당일)</td>
-            <td class="pt-note">일찍 시작하고 일찍 끝나는 패턴. 퇴근 직후가 피크.</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <details style="margin-top:.25rem">
+      <summary style="font-size:12px;color:var(--text-muted);cursor:pointer;user-select:none;list-style:none;display:flex;align-items:center;gap:6px">
+        <span style="font-size:10px">▶</span> 서비스 주요 국가 Prime Time (KST 기준)
+      </summary>
+      <div style="margin-top:8px;border-radius:var(--radius);overflow:hidden;border:.5px solid var(--border)">
+        <table class="pt-table">
+          <thead>
+            <tr>
+              <th style="width:120px">국가 (권역)</th>
+              <th style="width:130px">현지 Prime Time</th>
+              <th style="width:150px">한국 시간 (KST)</th>
+              <th>비고 및 편성 특징</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="pt-highlight">
+              <td><span class="pt-tag pt-tag-main">핵심</span>미국 (동부)</td>
+              <td class="pt-local">20:00 – 23:00</td>
+              <td class="pt-kst">09:00 – 12:00 (익일)</td>
+              <td class="pt-note">서머타임 적용 중. 인구가 밀집된 동부 기준 편성이 핵심.</td>
+            </tr>
+            <tr class="pt-highlight">
+              <td><span class="pt-tag pt-tag-main">핵심</span>캐나다 (동부)</td>
+              <td class="pt-local">19:00 – 23:00</td>
+              <td class="pt-kst">08:00 – 12:00 (익일)</td>
+              <td class="pt-note">미국 시장과 동조화. 19시부터 가족형 콘텐츠가 강세.</td>
+            </tr>
+            <tr>
+              <td><span class="pt-tag pt-tag-ref">참고</span>영국</td>
+              <td class="pt-local">19:00 – 22:00</td>
+              <td class="pt-kst">04:00 – 07:00 (익일)</td>
+              <td class="pt-note">21:00 Watershed(규제 기준점) 이후 성인 타깃 편성.</td>
+            </tr>
+            <tr>
+              <td><span class="pt-tag pt-tag-ref">참고</span>프랑스</td>
+              <td class="pt-local">21:10 – 23:00</td>
+              <td class="pt-kst">05:10 – 07:00 (익일)</td>
+              <td class="pt-note">유럽 내 가장 늦은 메인 프로그램 시작 시각 보유.</td>
+            </tr>
+            <tr>
+              <td><span class="pt-tag pt-tag-ref">참고</span>독일</td>
+              <td class="pt-local">20:15 – 23:00</td>
+              <td class="pt-kst">04:15 – 07:00 (익일)</td>
+              <td class="pt-note">20:00 뉴스 종료 직후인 20:15가 편성의 '대목'.</td>
+            </tr>
+            <tr>
+              <td><span class="pt-tag pt-tag-ref">참고</span>이탈리아</td>
+              <td class="pt-local">21:15 – 23:30</td>
+              <td class="pt-kst">05:15 – 07:30 (익일)</td>
+              <td class="pt-note">저녁 식사 후 온 가족이 모이는 21시 이후가 피크.</td>
+            </tr>
+            <tr>
+              <td><span class="pt-tag pt-tag-ref">참고</span>포르투갈</td>
+              <td class="pt-local">21:00 – 00:00</td>
+              <td class="pt-kst">06:00 – 09:00 (익일)</td>
+              <td class="pt-note">라틴 생활 패턴으로 자정까지 시청자 유지율이 높음.</td>
+            </tr>
+            <tr>
+              <td><span class="pt-tag pt-tag-ref">참고</span>브라질</td>
+              <td class="pt-local">20:30 – 22:30</td>
+              <td class="pt-kst">08:30 – 10:30 (익일)</td>
+              <td class="pt-note">Novela(드라마) 방영 시간대가 광고 및 시청률의 정점.</td>
+            </tr>
+            <tr>
+              <td><span class="pt-tag pt-tag-ref">참고</span>호주 (시드니)</td>
+              <td class="pt-local">19:00 – 22:30</td>
+              <td class="pt-kst">17:00 – 20:30 (당일)</td>
+              <td class="pt-note">한국과 시차가 적어 실시간 편성 관리에 가장 유리.</td>
+            </tr>
+            <tr>
+              <td><span class="pt-tag pt-tag-ref">참고</span>뉴질랜드</td>
+              <td class="pt-local">19:00 – 22:00</td>
+              <td class="pt-kst">16:00 – 19:00 (당일)</td>
+              <td class="pt-note">일찍 시작하고 일찍 끝나는 패턴. 퇴근 직후가 피크.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </details>
   </div>
 
 
@@ -362,6 +381,27 @@ function getColor(s){
 function fmt(n){ return typeof n==="number"?n.toLocaleString():n; }
 function timeToMin(t){ const[h,m]=t.split(":").map(Number); return h*60+m; }
 
+/* KST 기준 시각 → 선택된 시간대로 변환 (분 단위, 24h wrap) */
+function convertTz(t, offsetHours){
+  if(offsetHours===0) return timeToMin(t);
+  let min = timeToMin(t) + offsetHours * 60;
+  return ((min % 1440) + 1440) % 1440;  // 24h wrap
+}
+function getTzOffset(){
+  return parseInt(document.getElementById("tz-select")?.value || "0");
+}
+function getTzLabel(){
+  const sel = document.getElementById("tz-select");
+  return sel ? sel.options[sel.selectedIndex].text : "KST — 한국";
+}
+function onTzChange(){
+  const lbl = document.getElementById("hm-tz-label");
+  if(lbl) lbl.textContent = "방영 시간: " + getTzLabel();
+  // 현재 선택된 날짜로 히트맵 재렌더
+  const activeTab = document.querySelector(".tab.active");
+  if(activeTab) renderHeatmap(DATA[activeTab.dataset.d]);
+}
+
 
 
 let cVC=null, cVM=null;
@@ -416,9 +456,17 @@ function renderHeatmap(rows){
   const hourData={};
   HOURS.forEach(h=>{hourData[h]={vc:0,eps:[]};});
   rows.forEach(r=>{
-    const sm=timeToMin(r.start), em=timeToMin(r.end);
+    const tz=getTzOffset();
+    const sm=convertTz(r.start, tz);
+    const em=convertTz(r.end, tz);
     HOURS.forEach(h=>{
-      if(em>h*60 && sm<(h+1)*60){ hourData[h].vc+=r.vc; hourData[h].eps.push(r); }
+      const hS=h*60, hE=hS+60;
+      // 자정 넘김 처리: sm > em이면 두 구간으로 분리
+      if(sm<=em){
+        if(em>hS && sm<hE){ hourData[h].vc+=r.vc; hourData[h].eps.push(r); }
+      } else {
+        if(hS<em || hE>sm){ hourData[h].vc+=r.vc; hourData[h].eps.push(r); }
+      }
     });
   });
   const maxVC=Math.max(...HOURS.map(h=>hourData[h].vc),1);
@@ -446,7 +494,7 @@ function renderHeatmap(rows){
     cell.className="hm-cell";
     cell.style.cssText=`background:${bg};height:28px;color:${tc}`;
     cell.textContent=d.vc>0?d.vc:"";
-    if(d.eps.length) cell.title=`${String(h).padStart(2,"0")}:00–${String(h+1).padStart(2,"0")}:00\n`+d.eps.map(e=>`#${e.rank} ${e.ep} (${e.vc}v)`).join("\n");
+    if(d.eps.length) cell.title=`${String(h).padStart(2,"0")}:00–${String(h+1).padStart(2,"0")}:00\n`+d.eps.map(e=>`#${e.rank} ${e.ep} (${e.vc}v)  KST ${e.start}–${e.end}`).join("\n");
     hmRow.appendChild(cell);
   });
   wrap.appendChild(hmRow);
