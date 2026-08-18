@@ -98,14 +98,17 @@
 <body>
 <div class="page">
 
-  <div class="page-header">
-    <h1>NVOD 일간 TOP5 대시보드</h1>
-    <p>날짜 탭을 선택하면 랭킹, 차트, 시간대 히트맵이 자동으로 업데이트됩니다. 방영 시간: KST 기준</span>
-  </div>
+  <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem">
+    <div>
+      <h1>NVOD 일간 TOP5 대시보드</h1>
+      <p>날짜 탭을 선택하면 랭킹, 차트, 시간대 히트맵이 자동으로 업데이트됩니다. 방영 시간: KST 기준</p>
+    </div>
     <div style="text-align:right;flex-shrink:0">
       <div style="font-size:10px;color:var(--text-muted);margin-bottom:2px">최신 데이터</div>
       <div id="last-date-badge" style="font-size:13px;font-weight:500;color:var(--text-primary)">—</div>
     </div>
+  </div>
+
   <div class="kpi-row">
     <div class="kpi"><div class="kpi-label">날짜</div><div class="kpi-val" id="k-date">—</div><div class="kpi-sub">선택 날짜</div></div>
     <div class="kpi"><div class="kpi-label">총 View Count</div><div class="kpi-val" id="k-vc">—</div><div class="kpi-sub">TOP5 합계</div></div>
