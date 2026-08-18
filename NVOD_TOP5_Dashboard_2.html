@@ -667,6 +667,11 @@ function select(date){
     buildDayTabs(dates);
     if(dates.length) select(dates[0]);
   }
+
+  // 최신 데이터 날짜 자동 표시 (DATA의 첫 번째 키 기준)
+  const latestDate = Object.keys(DATA)[0];
+  const badge = document.getElementById("last-date-badge");
+  if(badge && latestDate) badge.textContent = "08/" + latestDate.split("/")[1] + " 기준";
 })();
 
 </script>
